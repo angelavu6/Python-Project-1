@@ -1,0 +1,217 @@
+'''This function reads the content of the input file and processes it.'''
+def file_content(csvfile):
+    with open(csvfile, 'r') as open_file: # Open file.
+        data = [] # Initialise a list to store all data. 
+        headers = open_file.readline().replace('\n', '').split(',') # Skip the header line.
+        
+        for line in open_file:
+            line = line.strip()  # Remove leading/trailing whitespace.
+            data_per_line = line.split(',')  # Split the line into a list of values based on ',' delimiter.
+            
+            for i in range(len(headers)): # Go through every column in the file.
+                if i < len(data_per_line): # Go through every single value in the file.
+                    if data_per_line[i].isdigit(): # If a value in the file is a digit.
+                        data_per_line[i] = int(data_per_line[i]) # Assign that value as an integer.
+                else:
+                    data_per_line.append('null') # If there is an extra column/value in the file, make it null.
+        
+            data.append(data_per_line)  # Append all data from the file to list, line by line.
+        
+        if len(data) == 0: # If there is no data in data list.
+            print("There is no data in this file.") # Print termination message.
+            return [] # Exit and return empty list.
+        else:
+            return data
+
+'''This function finds the organisations with the highest and lowest number of employees.'''
+def calculate_max_min(csvfile, country):
+    data = file_content(csvfile)
+    highest_org = [] # Initialise a list to store the organisation that has the highest number of employee.
+    lowest_org = [] # Initialise a list to store the organisation that has the lowest number of employee.
+    employee = [] # Initialise a list to store the number of employees.
+    
+    for i in range(len(data)): # Go through every value in the data list. 
+        if country.lower() == data[i][3].lower(): # Find the targetted country in the data list, lowercase the names. 
+            if 1981 <= data[i][4] <= 2000: # Find the country that was founded between 1981 and 2000 (inclusive).
+                employee.append(data[i][6]) # Append the number of employees of that country to initialised list.
+        
+    if len(employee) < 2: # If the country only has one organisation.
+        print("Country only has one organisation.") # Print termination message.
+        return [] # Exit and return empty list.
+                
+    highest = max(employee) # Find the highest number of employee in the list.
+    lowest = min(employee) # Find the lowest number of employee in the list. 
+
+    for i in range(len(data)): # Go through every value the data list again. 
+        if country.lower() == data[i][3].lower(): # Satisfy the condition. 
+            if 1981 <= data[i][4] <= 2000: # Satisfy the condition. 
+                if highest == data[i][6]: # Find the value in the data list that match the highest number of employee.
+                    highest_org = data[i][1].lower() # Find the organisation that holds that value, lowercase it's name. 
+                if lowest == data[i][6]: # Find the value in the data list that match the lowest number of employee.
+                    lowest_org = data[i][1].lower() # Find the organisation that holds that value, lowercase it's name.
+                    
+    result_max_min = [highest_org,lowest_org] # Store output in a list.
+    
+    return result_max_min
+
+'''This function calculates the standard deviation.'''
+def standard_deviation(csvfile, country):
+    data = file_content(csvfile)
+    org_median_salary = [] # Initialise a list to store an organisation's median salary.
+    all_median_salary = [] # Initialise a list to store every organisation's median salary.
+    summation1 = 0 # Represents x1, x2..xn values in the data list.
+    summation2 = 0 # Represents x1, x2.. xn values in the data list.
+     
+    for i in range(len(data)): # Go through every value in the data list. 
+        if country.lower() == data[i][3].lower(): # Find the targetted country in the data list, lowercase the names.
+            org_median_salary.append(data[i][7]) # Append the median salary of targetted country to initialised list. 
+            
+    sum_org_median_salary = sum(org_median_salary) # Find the sum of targetted country's median salaries.
+    org_total_element = len(org_median_salary) # Find the number of elements in the list.
+    org_mean_median_salary = float(sum_org_median_salary / org_total_element) # Find the mean of median salaries, assign datatype as float.
+
+    # Using standard deviation formula to solve.
+    for i in org_median_salary: # Go through every value in targetted country's median salary list.
+        difference = (i - org_mean_median_salary) 
+        square = (difference)**2
+        summation1 += square
+    
+    denominator1 = org_total_element - 1
+    
+    # Possible error case 1.    
+    if denominator1 == 0: # Numerator cannot divide by zero, output will have an error.
+        print("Error. Denominator is 0, cannot complete division.") # Termination message.
+        org_std = 0 # Exit and return 0.
+    else: # Calculating standard deviation for organisations in targetted country.
+        org_std = (summation1 / denominator1)**0.5
+        org_std = round(org_std, 4)
+    
+    for i in range(len(data)): # Go through every value in the data list.
+        all_median_salary.append(data[i][7]) # Append the median salary of all countries to initialised list.
+        
+    sum_all_median_salary = sum(all_median_salary) # Find the sum of all country's median salaries.
+    all_total_element = len(all_median_salary) # Find the number of elements in the list.
+    all_mean_median_salary = float(sum_all_median_salary / all_total_element) # Find the mean of median salaries, assign datatype as float.
+    
+    # Using standard deviation formular to solve.
+    for i in all_median_salary: # Go through every value in the median salary list of all countries.
+        difference = (i - all_mean_median_salary)
+        square = (difference)**2
+        summation2 += square
+        
+    denominator2 = all_total_element - 1
+    
+    # Possible error case 2.
+    if denominator2 == 0: # Numerator cannot divide by zero, output will have an error.
+        print("Error. Denominator is 0, cannot complete division.") # Termination message.
+        return [0, 0] # Exit and return 0.
+    
+    # Calculating standard deviation for organisations in all countries.
+    all_std = (summation2 / denominator2)**0.5
+    all_std = round(all_std, 4)
+    
+    result_std = [org_std,all_std] # Store output in a list.
+    
+    return result_std
+
+'''This function calculates the ratio of a country's profit increase vs profit decrease.'''
+def calculate_ratio(csvfile, country):
+    data = file_content(csvfile)
+    profit_2020 = [] # Initialise a list to store profit 2020.
+    profit_2021 = [] # Initialise a list to store profit 2021.
+    change_in_profit = [] # Initialise a list to store profit change from 2020 to 2021.
+    positive_increase = 0 # For every positive increase.
+    negative_increase = 0 # For every negative increase.
+    
+    for i in range(len(data)): # Go through every value in data list.
+        if country.lower() == data[i][3].lower(): # Find for targetted country in data list.
+            profit_2020.append(data[i][8]) # Append profit 2020 of targetted country to initialised list.
+            profit_2021.append(data[i][9]) # Append profit 2021 of targetted country to initialised list.
+            
+    for x,y in zip(profit_2020, profit_2021): # Match every data simultaneously in both lists.
+        change = y - x # Calculate the difference in profit 2020 and 2021.
+        change_in_profit.append(change) # Append the difference to initialised list.
+    
+    for i in change_in_profit: # Go through every value in change in profit list.
+        if i > 0: # If the change is positive.
+            positive_increase += i # Find all positive changes.
+        if i < 0: # If the change is negative.
+            negative_increase += i # Find all negative changes.
+     
+    # Possible error case.
+    if negative_increase == 0: # If there is no negative changes in profit.
+        print("There is no negative increase. Cannot find ratio.") # Termination message as we cannot divide by 0.
+        return 0 # Exit and return 0.
+    else: # If there is no error case.
+        ratio_of_profit = positive_increase / abs(negative_increase) # Calculate the ratio.
+        ratio_of_profit = round(ratio_of_profit, 4)
+    
+    return ratio_of_profit
+
+'''This function calculates the correlation between median salary and profit 2021.'''
+def correlation(csvfile, country):
+    data = file_content(csvfile)
+    median_salary = [] # Initialise list to store median salary.
+    profit_2021 = [] # Initialise list to store profit 2021.
+    summation1 = 0 # Represents x1, x2..xn values in the data list.
+    summation2 = 0 # Represents x1, x2..xn values in the data list.
+    summation3 = 0 # Represents x1, x2..xn values in the data list.
+
+    for i in range(len(data)): # Go through every value in data list.
+        if country.lower() == data[i][3].lower(): # Find for targetted country in datalist. 
+            profit_change = data[i][9] - data[i][8] # Calculate profit change from 2020 to 2021.
+            if profit_change > 0: # If profit change is positive.
+                median_salary.append(data[i][7]) # Append median salary of countries with positive profit change to initialised list.
+                profit_2021.append(data[i][9]) # Append profit 2021 of country with positive profit change to initialised list.
+    
+    # Calculate mean of median salary and profit 2021.
+    mean_median_salary = sum(median_salary) / len(median_salary)
+    mean_profit_2021 = sum(profit_2021) / len(profit_2021)
+    
+    # Using correlation formula to solve.
+    for a,b in zip(median_salary, profit_2021): # Matching every data simultaeously in both lists.
+        subtraction1 = a - mean_median_salary
+        subtraction2 = b - mean_profit_2021
+        squared1 = (a**2) - (mean_median_salary)**2
+        squared2 = (b**2) - (mean_profit_2021)**2
+        
+        summation1 += subtraction2 * subtraction1           
+        summation2 += squared1
+        summation3 += squared2
+            
+    denominator = (summation3 * summation2) ** 0.5
+
+    # Possible error case.
+    if denominator == 0: # Numerator cannot divide by 0, there will be error output.  
+        print("Error. Denominator is 0, cannot complete division.") # Print termination message.
+        return 0 # Exit and return 0.
+    else: # If there is no error case. 
+        result_corr = float(summation1 / denominator) # Calculate the correlation. 
+        result_corr = round(result_corr,4)
+    
+    return result_corr
+
+'''This is the main function.'''
+def main(csvfile, country):
+    data = file_content(csvfile)
+    country_found = False  # Flag to check if the country exists in the data.
+    
+    if data is None: # If there is no data in the file.
+        return [], [0, 0], 0, 0 # Exit and return error states.
+    
+    for i in range(len(data)): # Go through every value in data list.
+        if country.lower() == data[i][3].lower(): # Find targetted country in data list. 
+            country_found = True # If targetted country is found in data list. 
+            break # Exit loop and continue the program.
+        
+    if not country_found: # If targetted country is not found in data list.
+        print("Country does not exist in the data file.") # Print termination message.
+        return [], [0, 0], 0, 0 # Exit and return error states.
+    
+    # Call all functions. 
+    result_max_min = calculate_max_min(csvfile, country)
+    result_std = standard_deviation(csvfile, country)
+    ratio_of_profit = calculate_ratio(csvfile, country)
+    result_corr = correlation(csvfile, country)
+
+    return result_max_min, result_std, ratio_of_profit, result_corr # Return all output. 
